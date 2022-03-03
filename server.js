@@ -19,7 +19,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 console.log(mongoose.connection.readyState)
 
 //Build a schemaand model to store saved URLS
-var ShortURL = moongose.model('ShortURL', new mongoose.Schema({
+var ShortURL = mongoose.model('ShortURL', new mongoose.Schema({
   short_url: String,
   original_url: String,
   suffix: String
