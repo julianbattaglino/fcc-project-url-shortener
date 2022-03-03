@@ -4,19 +4,10 @@ const cors = require('cors');
 const app = express();
 const dns = require('dns')
 const urlparser = require('url')
+const mongo = require ('mongodb')
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser')
-
-// Basic Configuration
-const port = process.env.PORT || 3000;
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-console.log(mongoose.connection.readyState)
-
-const schema = mongoose.Schema({ url: 'string' });
-const Url = mongoose.model('Url', schema);
-
-
-app.use(cors());
+const shortid = require('shortid')
 
 app.use('/public', express.static(`${process.cwd()}/public`));
 
@@ -24,44 +15,57 @@ app.get('/', function(req, res) {
   res.sendFile(process.cwd() + '/views/index.html');
 });
 
-// Your first API endpoint
-app.post('/api/shorturl/new', function(req, res) {
-  console.log(req.body);
-  const bodyurl = req.body.url;
-  
-  const something = dns.lookup(urlparser.parse(bodyurl).hostname,
-   (error, address) => {
-    if (!address) {
-      res.json({ error:"Invalid URL"})
-    } else {
-      const url = new Url({ url: bodyurl})
-      url.save ((err, data) => {
-        res.json({
-          original_url: data.url,
-          short_url: data.id
-      })
-    }
-    )
-  }
-  console.log("dns", error);
-  console.log("address", address);
-})
-console.log("something", something);
+
+// Basic Configuration
+const port = process.env.PORT || 3000;
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+console.log(mongoose.connection.readyState)
+
+//Build a schemaand model to store saved URLS
+var ShortURL = moongose.model('ShortURL', new mongoose.Schema({
+  short_url: String,
+  original_url: String,
+  suffix: String
+}));
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+// parse application/json
+app.use(bodyParser.json());
+
+
+// API endpoint
+app.post('/api/shorturl/new', function (req, res) {
+
+  let client_requested_url = body.body.url
+  let suffix = shortid.generate();
+  let newShortURL = suffix
+
+  let newURL = new ShortURL({
+    short_url:__dirname + "/api/shorturl/" + suffix,
+    original_url: client_requested_url,
+    suffix: suffix
+  })
+
+  newURL.save(function (err, doc) {
+    if(err) return console.error(err);
+    console.log("Document inserted succussfully", newURL);
+    res.json({
+      "saved": true,
+      "short_url": newURL.short_url,
+      "original_url": newURL.original_url,
+      "suffix": newURL.suffix
+    });
+  });
 });
 
-
-app.get('/api/shorturl/:id', (req, res) => {
-  const id = req.params.id;
-  Url.findById(id, (err, data) => {
-    if(!data) {
-      res.json({error: "Invalid URL"})
-    }else{
-
-      res.redirect(data.url)
-    }
-  })
-})
-
+  app.get('/api/shorturl/:suffix', function (req, res) {
+    let userGeneratedSuffix = req.params.suffix;
+    ShortURL.find({ suffix: userGeneratedSuffix }).then(foundUrls => {
+      let urlForRedirect = foundUrls[0];
+      res.redirect(urlForRedirect.original_url);
+    });
+  });   
 
 app.listen(port, function() {
   console.log(`Listening on port ${port}`);
