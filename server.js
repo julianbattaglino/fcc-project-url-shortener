@@ -1,3 +1,5 @@
+const database_uri = 'mongodb+srv://julianbattaglino:Pitufa03@cluster0.7h6hf.mongodb.net/Cluster0?retryWrites=true&w=majority'
+
 require('dotenv').config();
 const express = require('express');
 const app = express();
@@ -5,6 +7,8 @@ const mongo = require ('mongodb')
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser')
 const shortid = require('shortid')
+const port = process.env.PORT || 3000;
+
 
 app.use('/public', express.static(`${process.cwd()}/public`));
 
@@ -13,10 +17,15 @@ app.get('/', function(req, res) {
 });
 
 
-// Basic Configuration
-const port = process.env.PORT || 3000;
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+// MongoDB connection
+mongoose.connect(database_uri, {
+useNewUrlParser: true, 
+useUnifiedTopology: true 
+});
 console.log(mongoose.connection.readyState)
+
+//mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
 
 //Build a schemaand model to store saved URLS
 var ShortURL = mongoose.model('ShortURL', new mongoose.Schema({
