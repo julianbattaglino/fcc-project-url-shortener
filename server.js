@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const app = express();
 const dns = require('dns')
 const urlparser = require('url')
@@ -28,6 +27,9 @@ var ShortURL = moongose.model('ShortURL', new mongoose.Schema({
   suffix: String
 }));
 
+//enable CORS so your api is remotely testeable by freecodecamp
+const cors = require('cors');
+app.use(cors({optionsSuccessStatus: 200}));
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
